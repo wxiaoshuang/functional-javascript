@@ -30,7 +30,7 @@ var getCurrentUser = partial(ajax, "http://some.api/person", {user: "hello world
 // version 2
 var getCurrentUser = partial( getPerson, { user: CURRENT_USER_ID } );
 // 应用2
-functin add(x, y) {
+function add(x, y){
     return x + y
 }
 [1,2,3,4,5].map( partial( add, 3 ) )
@@ -50,20 +50,53 @@ function reverseArgs(fn) {
 }
 ```
 * 科里化 curry todo 
-    一次固定一个参数,将一个多元函数分解为一系列链式调用的一元函数(严格)
+    柯里化是一种将使用多个参数的一个函数转换成一系列使用一个参数的函数的技术。
 ```javascript
-// curry函数的实现
-const curry = fn => (…args) => fn.bind(null, …args);
-function add(x, y ,z) {
-    return [x, y ,z]
+// 第一版
+function curry(fn) {
+    var args = [].slice.call(arguments, 1)
+    return function () {
+        var newArgs = args.concat([].slice.call(arguments))
+        return fn.apply(this, newArgs)
+    }
 }
-let curriedAdd = curry(add)
-curriedAdd(2)(3)(4)
-curriedAdd(2, 3)(4)
-curriedAdd(2, 3, 4)
+function add(a, b) {
+    return a + b;
+}
+var addCurry = curry(add, 1, 2);
+addCurry() // 3
+//或者
+var addCurry = curry(add, 1);
+addCurry(2) // 3
+//或者
+var addCurry = curry(add);
+addCurry(1, 2) // 3}
+```
+```javascript
+// 第二版
+function sub_curry(fn) {
+    var args = [].slice.call(arguments, 1);
+    return function() {
+        return fn.apply(this, args.concat([].slice.call(arguments)));
+    };
+}
+
+function curry(fn, length) {
+    length = length || fn.length;
+    var slice = Array.prototype.slice;
+    return function() {
+        if (arguments.length < length) {
+            var combined = [fn].concat(slice.call(arguments));
+            return curry(sub_curry.apply(this, combined), length - arguments.length);
+        } else {
+            return fn.apply(this, arguments);
+        }
+    };
+}
+
 ```
 * 组合 compose
-    函数执行顺序是从右往左
+    函数组合，执行顺序是从右往左
 ```javascript
     function compose(...fn) {
         return function composed(result){
